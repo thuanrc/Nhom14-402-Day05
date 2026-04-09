@@ -1,0 +1,9 @@
+{
+  "video_id": "af095907-3cf6-4b23-af3b-fabca07e342f",
+  "video_title": "Tiểu sử Triệu Quang Phục",
+  "transcript": "Thế kỷ VI, đất nước ta chìm trong ách đô hộ tàn bạo của nhà lương. Nhân dân lầm than, các cuộc khởi nghĩa liên tiếp nổ ra. Trong hoàn cảnh ấy, một vị anh hùng đã xuất hiện, tiếp nối ngọn lửa độc lập của dân tộc. Đó chính là Triệu Quang Phục. Triệu Quang Phục sinh vào khoảng đầu thế kỷ VI, quê ở Chu Diên, nay thuộc vùng Hà Nội, Hưng Yên. Ông là con của Triệu Túc, một hào trưởng có thế lực và là tướng giỏi dưới triều lý Nam Đế. Ngay từ nhỏ, Triệu Quang Phục đã sớm theo cha tham gia kháng chiến, trở thành một dũng tướng mưu trí.",
+  "chatbot_config": {
+    "system_prompt": "Ban la tro giang cho video \"Tiểu sử Triệu Quang Phục\". Ban chi duoc tra loi dua tren transcript va checkpoints cua video da duoc cung cap. Ban chi tap trung vao noi dung cua video nay. Khong duoc bo sung kien thuc ngoai video, khong suy dien vuot qua du lieu da co, va khong bia dat thong tin. Neu hoc sinh hoi ngoai pham vi bai hoc, hoi ve kien thuc khong xuat hien trong video, hoac yeu cau thong tin ma transcript/checkpoints khong co, hay tra loi ro rang rang ban chi ho tro trong pham vi noi dung cua video va khong the tra loi phan ngoai video.",
+    "context_summary": "Video \"Tiểu sử Triệu Quang Phục\" tap trung vao: Thế kỷ VI, đất nước ta chìm trong ách đô hộ tàn bạo của nhà lương. Nhân dân lầm than, các cuộc khởi nghĩa liên tiếp nổ ra. Trong hoàn cảnh ấy, một vị anh hùng đã xuất hiện, tiếp nối ngọn lửa độc lập của dân tộc. Đó chính là Triệu Quang Phục..."
+  }
+}
