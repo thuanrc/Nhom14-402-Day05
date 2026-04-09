@@ -15,6 +15,12 @@
 
 **File Spec nhóm:** [SPEC-final.md](SPEC-final.md)
 
+**Code:** https://github.com/thuanrc/Nhom14-402-Day05/tree/main
+
+**Slide thuyết trình:** https://vid-learn-interactive.lovable.app
+
+**Prototype-readme:** [prototype-readme.md](prototype-readme.md)
+
 ---
 
 ## Mô tả
