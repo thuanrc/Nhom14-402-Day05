@@ -61,6 +61,53 @@ def contextualize_query(client, user_input, history):
     )
     return clean_surrogates(response.choices[0].message.content.strip())
 
+def rerank_chunks(client, query, chunks, top_k=3):
+    """
+    Use the LLM to rerank top candidates and pick the best ones.
+    'chunks' is a list of dicts: {"id": N, "text": "..."}
+    """
+    if not chunks:
+        return ""
+
+    # Format candidates for the LLM
+    candidates = ""
+    for i, c in enumerate(chunks):
+        candidates += f"[{i+1}] {c['text'][:200]}...\n"
+
+    prompt = (
+        "Dựa vào câu hỏi và danh sách các đoạn văn bản dưới đây, hãy chọn ra tối đa 3 đoạn văn bản LIÊN QUAN NHẤT để trả lời câu hỏi.\n"
+        f"Câu hỏi: {query}\n\n"
+        f"Danh sách các đoạn văn (được đánh số):\n{candidates}\n"
+        "Yêu cầu:\n"
+        "- CHỈ trả về số thứ tự của các đoạn được chọn, cách nhau bằng dấu phẩy (ví dụ: 1, 3).\n"
+        "- Nếu không có đoạn nào liên quan, hãy trả về 'NONE'."
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0
+        )
+        selection = response.choices[0].message.content.strip()
+        
+        if "NONE" in selection:
+            return ""
+
+        # Parse indices (1-based)
+        indices = [int(s.strip()) - 1 for s in selection.split(',') if s.strip().isdigit()]
+        
+        selected_content = []
+        for idx in indices:
+            if 0 <= idx < len(chunks):
+                c = chunks[idx]
+                selected_content.append(f"[Nguồn {c['id']}]: {c['text']}")
+        
+        return "\n\n---\n\n".join(selected_content)
+    except:
+        # Fallback to simple join of top 3 if LLM reranking fails
+        return "\n\n---\n\n".join([f"[Nguồn {c['id']}]: {c['text']}" for c in chunks[:top_k]])
+
 def streaming_chatbot(rag_manager: RAGManager) -> None:
     """
     Run an interactive streaming chatbot in the terminal using RAG.
@@ -83,11 +130,11 @@ def streaming_chatbot(rag_manager: RAGManager) -> None:
                 "-----------------\n\n"
                 "QUY TẮC PHẢN HỒI:\n"
                 "1. CHỈ sử dụng thông tin trong NGỮ CẢNH để trả lời. Nếu không tìm thấy thông tin, hãy trả lời: "
-                "'Rất tiếc, tôi không có thông tin về vấn đề này trong cơ sở dữ liệu. Bạn có thể hỏi về [gợi ý một vài chủ đề có trong ngữ cảnh] không?'\n"
-                "2. Nếu câu hỏi mang tính chào hỏi hoặc xã giao, hãy đáp lại một cách thân thiện và mời họ đặt câu hỏi về kiến thức.\n"
-                "3. Trình bày câu trả lời rõ ràng, sử dụng gạch đầu dòng nếu cần thiết.\n"
-                "4. Tuyệt đối KHÔNG trả lời các nội dung nhạy cảm, chính trị, bạo lực hoặc không lành mạnh.\n"
-                "5. Luôn giữ thái độ tích cực và khuyến khích."
+                "'Rất tiếc, tôi không có thông tin về vấn đề này trong cơ sở dữ liệu.'\n"
+                "2. TRÍCH DẪN NGUỒN: Khi sử dụng thông tin từ một đoạn văn, bạn BẮT BUỘC phải ghi nguồn ở cuối câu hoặc đoạn đó (ví dụ: [Nguồn 1], [Nguồn 5]).\n"
+                "3. Nếu câu hỏi mang tính chào hỏi, hãy đáp lại thân thiện và mời họ đặt câu hỏi về kiến thức.\n"
+                "4. Trình bày câu trả lời rõ ràng, chuyên nghiệp.\n"
+                "5. Tuyệt đối KHÔNG trả lời các nội dung nhạy cảm."
             )
         }
     
@@ -115,10 +162,18 @@ def streaming_chatbot(rag_manager: RAGManager) -> None:
         # Step 1: Contextualize user query (Memory Enhancement)
         standalone_query = contextualize_query(client, user_input, history)
         
-        # Step 2: Retrieve relevant chunks (RAG)
-        retrieved_context = rag_manager.retrieve(standalone_query)
+        # Display the rewritten query if it's significantly different from user input
+        if standalone_query.lower().strip("?. ") != user_input.lower().strip("?. "):
+            print(f"🔍 [AI hiểu là]: Có phải bạn muốn hỏi: \"{standalone_query}\"?")
+        
+        # Step 2: Retrieve relevant chunks using Hybrid Search (Vector + Keyword)
+        # We get 10 candidates for reranking
+        candidates = rag_manager.hybrid_search(standalone_query, top_k=10)
+        
+        # Step 3: Rerank chunks using LLM for higher precision
+        retrieved_context = rerank_chunks(client, standalone_query, candidates)
 
-        # Step 3: Prepare messages with Dynamic System Prompt
+        # Step 4: Prepare messages with Dynamic System Prompt
         SYSTEM_PROMPT = get_system_prompt(retrieved_context)
         messages = [SYSTEM_PROMPT] + history + [{"role": "user", "content": user_input}]
         
@@ -147,6 +202,13 @@ def streaming_chatbot(rag_manager: RAGManager) -> None:
                 continue
         
         print()
+        
+        # Step 5: Print Sources for transparency
+        if retrieved_context:
+            print("\n" + "═"*40)
+            print("📚 CÁC NGUỒN THAM KHẢO:")
+            print(retrieved_context)
+            print("═"*40 + "\n")
         
         # Add to history
         history.append({"role": "user", "content": user_input})

@@ -3,11 +3,13 @@
 Một chatbot thông minh được xây dựng bằng Python và OpenAI, có khả năng học và trả lời các câu hỏi dựa trên một nội dung (context) cụ thể được cung cấp trước, đồng thời từ chối các câu hỏi không liên quan.
 
 ## ✨ Tính năng chính
-- **Knowledge-Based**: Chỉ trả lời dựa trên nội dung được cấu hình trong code.
-- **Out-of-scope Protection**: Tự động nhận diện và từ chối các câu hỏi nằm ngoài phạm vi kiến thức được cấp.
-- **Streaming Response**: Hiển thị câu trả lời dưới dạng dòng chảy (streaming) tương tự ChatGPT.
-- **Robust Encoding**: Hỗ trợ hiển thị tiếng Việt chuẩn trên Windows terminal thông qua việc xử lý Unicode và surrogates.
-- **Conversation History**: Ghi nhớ ngữ cảnh hội thoại gần nhất (3 lượt gần nhất).
+- **Advanced RAG (Retrieval-Augmented Generation)**: Truy xuất thông tin thông minh từ file kiến thức lớn (`knowledge_base.txt`).
+- **Hybrid Search**: Kết hợp Vector Search (FAISS) và Keyword Search (BM25) để tìm kiếm chính xác tuyệt đối.
+- **Contextual Query Re-writing**: Tự động tái cấu trúc câu hỏi dựa trên lịch sử hội thoại để hiểu ngữ cảnh.
+- **LLM Reranking**: Sử dụng AI để tái xếp hạng các tài liệu tìm được, đảm bảo độ chính xác cao nhất.
+- **Streaming Response**: Hiển thị câu trả lời dạng dòng chảy (real-time).
+- **Source Citations**: Tự động trích dẫn nguồn thông tin [Nguồn X] và hiển thị nội dung tham khảo minh bạch.
+- **Persistence**: Lưu trữ Index xuống đĩa cứng để khởi động tức thì và tiết kiệm chi phí API.
 
 ## 🚀 Hướng dẫn cài đặt
 
@@ -33,31 +35,30 @@ Tạo hoặc chỉnh sửa file `.env` ở thư mục gốc:
 OPENAI_API_KEY=your_api_key_here
 ```
 
-## 🛠 Cách sử dụng
+### Cập nhật kiến thức cho Chatbot
+Thay vì chỉnh sửa code, bạn chỉ cần cập nhật nội dung vào file:
+- **[knowledge_base.txt](file:///d:/Documents/AI/assignments/Nhom14-402-Day05/knowledge_base.txt)**
 
-### Thay đổi nội dung Chatbot học
-Mở file `chatbot.py` và tìm đến khối `if __name__ == "__main__":` ở cuối file để thay đổi biến `CONTEXT`:
-
-```python
-if __name__ == "__main__":
-    CONTEXT = """
-    Dán nội dung bạn muốn chatbot trả lời vào đây...
-    """
-    streaming_chatbot(CONTEXT)
-```
+Sau khi bạn thay đổi file này, hệ thống sẽ tự động phát hiện và xây dựng lại cơ sở dữ liệu (Index) trong lần chạy tiếp theo.
 
 ### Chạy ứng dụng
-Mở terminal và chạy lệnh:
-```powershell
-chcp 65001
-python chatbot.py
-```
+1. **Kích hoạt môi trường ảo:**
+   - Windows (PowerShell): `.\venv\Scripts\Activate.ps1`
+   - Linux/WSL: `source venv/bin/activate`
+
+2. **Khởi chạy Chatbot:**
+   ```bash
+   python chatbot.py
+   ```
 
 ## 📂 Cấu trúc thư mục
-- `chatbot.py`: Code logic chính của chatbot.
-- `requirements.txt`: Danh sách các thư viện phụ thuộc.
+- `chatbot.py`: Logic xử lý hội thoại, Reranking và hiển thị.
+- `rag_utils.py`: Quản lý Indexing, Persistence và Hybrid Search.
+- `knowledge_base.txt`: Cơ dữ liệu tri thức của chatbot.
+- `evaluate_rag.py`: Script đánh giá chất lượng phản hồi của RAG.
+- `data/`: Thư mục lưu trữ bộ chỉ mục (Index) đã được xử lý.
+- `requirements.txt`: Danh sách các thư viện hỗ trợ.
 - `.env`: Lưu trữ API Key bảo mật.
-- `README.md`: Hướng dẫn này.
 
 ## ⚖️ Giấy phép
 Dự án được phát triển cho mục đích học tập và nghiên cứu AI.
