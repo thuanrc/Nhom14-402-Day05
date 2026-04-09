@@ -2,7 +2,7 @@
 
 **Nhóm:** 14 — Nhóm mười bốn 402
 **Track:** ☐ VinFast · ☐ Vinmec · ☑ VinUni-VinSchool · ☐ XanhSM · ☐ Open
-**Problem statement (1 câu):** *Học sinh cảm thấy nhàm chán, thiếu tương tác khi học qua video thụ động (đặc biệt là môn Lịch sử); AI tự động phân tích video, chèn các điểm dừng chứa câu hỏi tương tác và chấm điểm câu trả lời ngay lập tức, đồng thời cung cấp chatbot RAG để học sinh giải đáp thắc mắc trong lúc xem.*
+**Problem statement (1 câu):** *Học sinh cảm thấy nhàm chán, thiếu tương tác khi học qua video thụ động (đặc biệt là môn Lịch sử); AI tự động phân tích video, chèn các điểm dừng chứa câu hỏi tương tác và chấm điểm, đưa ra giải thích câu trả lời ngay lập tức, đồng thời cung cấp chatbot RAG để học sinh giải đáp thắc mắc trong lúc xem.*
 
 ---
 
@@ -40,7 +40,7 @@ Mỗi feature chính = 1 bảng. AI trả lời xong → chuyện gì xảy ra?
 | Failure — AI sai | User biết AI sai bằng cách nào? Recover ra sao? | *Câu hỏi lạc đề, sai kiến thức hoặc thời điểm hỏi không phù hợp. Giáo viên sửa/xóa trực tiếp trên Dashboard. AI ghi nhận correction để cải thiện lần sau.* |
 | Correction — user sửa | User sửa bằng cách nào? Data đó đi vào đâu? | *Giáo viên chỉnh sửa hoặc tạo câu hỏi thủ công thay thế. Correction log lưu vào DB, dùng làm training data để fine-tune model sinh câu hỏi.* |
 
-### Feature 2: Học sinh xem video → AI chèn câu hỏi → Chấm điểm real-time
+### Feature 2: Học sinh xem video → AI chèn câu hỏi → Chấm điểm, giải thích real-time
 
 **Trigger:** *Học sinh mở video → Tới mốc thời gian → Video tạm dừng, hiện câu hỏi → Học sinh trả lời → AI chấm điểm ngay lập tức.*
 
