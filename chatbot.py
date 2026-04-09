@@ -1,6 +1,7 @@
 import os
 import time
 import sys
+from rag_utils import RAGManager
 
 # Ensure terminal output supports UTF-8 for Vietnamese characters
 if sys.stdout.encoding.lower() != 'utf-8':
@@ -14,7 +15,9 @@ if sys.stdout.encoding.lower() != 'utf-8':
 # Streaming chatbot with conversation history
 # ---------------------------------------------------------------------------
 def clean_surrogates(text):
-    """Recursively remove surrogate characters from strings/dicts/lists."""
+    """Recursively remove surrogate characters from strings/dicts/lists/None."""
+    if text is None:
+        return None
     if isinstance(text, str):
         return text.encode('utf-8', 'ignore').decode('utf-8')
     if isinstance(text, dict):
@@ -23,14 +26,44 @@ def clean_surrogates(text):
         return [clean_surrogates(i) for i in text]
     return text
 
-def streaming_chatbot(CONTEXT: str) -> None:
+def contextualize_query(client, user_input, history):
     """
-    Run an interactive streaming chatbot in the terminal.
+    Rewrite the user's query to be a standalone question based on history.
+    """
+    if not history:
+        return clean_surrogates(user_input)
 
-    Behaviour:
-        - Streams tokens from OpenAI as they arrive (print each chunk).
-        - Maintains the last 3 conversation turns in history + a static system prompt.
-        - Typing 'quit' or 'exit' ends the loop.
+    # Prepare historical context (last 4 messages for brevity)
+    context_str = ""
+    for msg in history[-4:]:
+        role = "Học sinh" if msg["role"] == "user" else "AI"
+        context_str += f"{role}: {msg['content']}\n"
+
+    prompt = (
+        "Dựa vào lịch sử hội thoại dưới đây, hãy viết lại câu hỏi cuối cùng của học sinh thành một câu hỏi độc lập, "
+        "đầy đủ ý nghĩa để có thể dùng để tìm kiếm thông tin.\n"
+        "Yêu cầu:\n"
+        "- KHÔNG trả lời câu hỏi, CHỈ viết lại câu hỏi.\n"
+        "- Giữ nguyên ngôn ngữ (Tiếng Việt).\n"
+        "- Nếu câu hỏi đã đủ ý nghĩa, hãy giữ nguyên.\n\n"
+        f"Lịch sử hội thoại:\n{context_str}\n"
+        f"Câu hỏi mới nhất: {user_input}\n\n"
+        "Câu hỏi độc lập:"
+    )
+
+    # Clean the prompt before sending
+    prompt = clean_surrogates(prompt)
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0
+    )
+    return clean_surrogates(response.choices[0].message.content.strip())
+
+def streaming_chatbot(rag_manager: RAGManager) -> None:
+    """
+    Run an interactive streaming chatbot in the terminal using RAG.
     """
     from openai import OpenAI
     from dotenv import load_dotenv
@@ -39,23 +72,28 @@ def streaming_chatbot(CONTEXT: str) -> None:
     api_key = os.getenv("OPENAI_API_KEY")
     client = OpenAI(base_url="https://models.inference.ai.azure.com", api_key=api_key)
 
-    SYSTEM_PROMPT = {
-        "role": "system",
-        "content": (
-            "Bạn là một hệ thống AI thông minh và thân thiện, chuyên hỗ trợ học sinh học tập.\n"
-            "Nhiệm vụ của bạn là trả lời các câu hỏi của học sinh dựa trên nội dung (CONTEXT) dưới đây:\n"
-            "--- \n"
-            f"{CONTEXT}\n"
-            "--- \n\n"
-            "Quy tắc quan trọng:\n"
-            "1. Chỉ trả lời các câu hỏi liên quan hoặc có trong nội dung được cung cấp ở trên.\n"
-            "2. Nếu câu hỏi không liên quan, hãy trả lời lịch sự rằng bạn chỉ có thể hỗ trợ các vấn đề trong phạm vi kiến thức này.\n"
-            "3. Tuyệt đối không trả lời các câu hỏi nhạy cảm, bạo lực, có nội dung không lành mạnh hoặc ảnh hưởng tiêu cực đến tâm lý học sinh.\n"
-            "4. Luôn giữ thái độ tích cực, khuyến khích học sinh và sử dụng ngôn ngữ trong sáng, phù hợp với lứa tuổi."
-        )
-    }
+    def get_system_prompt(retrieved_context):
+        return {
+            "role": "system",
+            "content": (
+                "Bạn là 'AI Support Assistant' - một chuyên gia hỗ trợ thông minh, thân thiện và chuyên nghiệp.\n"
+                "Nhiệm vụ của bạn là giải đáp thắc mắc dựa trên NGỮ CẢNH (CONTEXT) được cung cấp dưới đây.\n\n"
+                "--- NGỮ CẢNH ---\n"
+                f"{retrieved_context}\n"
+                "-----------------\n\n"
+                "QUY TẮC PHẢN HỒI:\n"
+                "1. CHỈ sử dụng thông tin trong NGỮ CẢNH để trả lời. Nếu không tìm thấy thông tin, hãy trả lời: "
+                "'Rất tiếc, tôi không có thông tin về vấn đề này trong cơ sở dữ liệu. Bạn có thể hỏi về [gợi ý một vài chủ đề có trong ngữ cảnh] không?'\n"
+                "2. Nếu câu hỏi mang tính chào hỏi hoặc xã giao, hãy đáp lại một cách thân thiện và mời họ đặt câu hỏi về kiến thức.\n"
+                "3. Trình bày câu trả lời rõ ràng, sử dụng gạch đầu dòng nếu cần thiết.\n"
+                "4. Tuyệt đối KHÔNG trả lời các nội dung nhạy cảm, chính trị, bạo lực hoặc không lành mạnh.\n"
+                "5. Luôn giữ thái độ tích cực và khuyến khích."
+            )
+        }
     
     history = []
+    
+    print("--- Chatbot RAG đã sẵn sàng! (Gõ 'quit' để thoát) ---")
     
     while True:
         try:
@@ -74,17 +112,23 @@ def streaming_chatbot(CONTEXT: str) -> None:
         if not user_input:
             continue
         
-        # Add user message to history
-        history.append({"role": "user", "content": user_input})
-
-        # Prepare messages for API call (Always include system prompt)
-        messages = [SYSTEM_PROMPT] + history
+        # Step 1: Contextualize user query (Memory Enhancement)
+        standalone_query = contextualize_query(client, user_input, history)
         
-        # Sanitize messages to avoid UnicodeEncodeError (surrogates)
+        # Step 2: Retrieve relevant chunks (RAG)
+        retrieved_context = rag_manager.retrieve(standalone_query)
+
+        # Step 3: Prepare messages with Dynamic System Prompt
+        SYSTEM_PROMPT = get_system_prompt(retrieved_context)
+        messages = [SYSTEM_PROMPT] + history + [{"role": "user", "content": user_input}]
+        
+        # Sanitize messages
         messages = clean_surrogates(messages)
 
         # Stream response
-        print("Assistant: ", end="", flush=True)
+        print(f"Assistant: ", end="", flush=True)
+        # (Optional: print standalone query for debugging)
+        # print(f"[{standalone_query}] ", end="", flush=True)
         
         stream = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -95,20 +139,21 @@ def streaming_chatbot(CONTEXT: str) -> None:
         assistant_response = ""
         for chunk in stream:
             try:
-                delta = chunk.choices[0].delta.content 
-                if delta:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    delta = chunk.choices[0].delta.content
                     assistant_response += delta
                     print(delta, end="", flush=True)
             except:
                 continue
         
-        print()  # New line after streaming completes
+        print()
         
-        # Add assistant response to history
+        # Add to history
+        history.append({"role": "user", "content": user_input})
         history.append({"role": "assistant", "content": assistant_response})
         
-        # Trim history to last 3 turns (6 messages)
-        history = history[-6:]
+        # Trim history (keep more history now as we use contextualization)
+        history = history[-10:]
 
     print("Chatbot session ended.")
 
@@ -117,13 +162,17 @@ def streaming_chatbot(CONTEXT: str) -> None:
 # Entry point for manual testing
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    # [ACTION] Replace this with your actual content
-    CONTEXT = """
-    Công ty ABC là một công ty công nghệ đa quốc gia có trụ sở tại Hà Nội.
-    Chúng tôi cung cấp các giải pháp về Trí tuệ nhân tạo (AI), Học máy (Machine Learning) và Phát triển phần mềm.
-    Thời gian làm việc từ thứ 2 đến thứ 6, từ 8:00 đến 17:00.
-    Địa chỉ: 123 Đường Láng, Đống Đa, Hà Nội.
-    Số điện thoại: 0123 456 789.
-    """
+    # Initialize RAG Manager
+    rag = RAGManager()
+    
+    # Path to knowledge base
+    KB_FILE = "knowledge_base.txt"
+    
+    # Build index if file exists
+    if os.path.exists(KB_FILE):
+        print(f"Bắt đầu xây dựng cơ sở dữ liệu từ {KB_FILE}...")
+        rag.build_index(KB_FILE)
+    else:
+        print(f"Cảnh báo: Không tìm thấy file {KB_FILE}. Chatbot sẽ chạy không có dữ liệu RAG.")
 
-    streaming_chatbot(CONTEXT)
+    streaming_chatbot(rag)

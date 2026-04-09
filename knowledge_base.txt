@@ -1,0 +1,66 @@
+1. Giới thiệu tổng quan
+
+Công ty ABC là một công ty công nghệ đa quốc gia có trụ sở chính tại Hà Nội, Việt Nam. Doanh nghiệp được thành lập với mục tiêu cung cấp các giải pháp công nghệ hiện đại, hỗ trợ doanh nghiệp và tổ chức trong quá trình chuyển đổi số, tối ưu vận hành và nâng cao năng lực cạnh tranh trên thị trường.
+
+Trong nhiều năm hoạt động, ABC đã tập trung phát triển các dịch vụ cốt lõi xoay quanh Trí tuệ nhân tạo (Artificial Intelligence - AI), Học máy (Machine Learning), Khoa học dữ liệu (Data Science), Phân tích dữ liệu doanh nghiệp, Phát triển phần mềm và Tư vấn chiến lược công nghệ.
+
+ABC định vị mình là một đối tác công nghệ dài hạn, không chỉ cung cấp phần mềm hay hệ thống kỹ thuật, mà còn đồng hành cùng khách hàng trong việc xác định bài toán, thiết kế giải pháp, triển khai thử nghiệm (PoC), đưa vào vận hành thực tế và liên tục cải tiến theo nhu cầu kinh doanh.
+
+2. Tầm nhìn và sứ mệnh
+2.1 Tầm nhìn
+
+Tầm nhìn của Công ty ABC là trở thành một trong những doanh nghiệp công nghệ hàng đầu khu vực châu Á trong lĩnh vực AI ứng dụng, nền tảng dữ liệu thông minh và giải pháp phần mềm doanh nghiệp.
+
+ABC hướng đến việc xây dựng một hệ sinh thái công nghệ nơi dữ liệu, mô hình AI và con người có thể phối hợp hiệu quả để tạo ra giá trị bền vững cho tổ chức, doanh nghiệp và cộng đồng.
+
+2.2 Sứ mệnh
+
+Sứ mệnh của công ty là:
+
+Giúp doanh nghiệp khai thác giá trị từ dữ liệu
+Ứng dụng AI vào các bài toán thực tiễn
+Phát triển phần mềm có khả năng mở rộng và dễ bảo trì
+Thúc đẩy đổi mới sáng tạo trong môi trường doanh nghiệp
+Nâng cao trải nghiệm người dùng cuối thông qua công nghệ
+
+ABC tin rằng công nghệ không chỉ là công cụ, mà còn là nền tảng để xây dựng lợi thế cạnh tranh dài hạn.
+
+3. Lĩnh vực hoạt động chính
+
+Hiện nay, Công ty ABC đang hoạt động trong nhiều lĩnh vực công nghệ khác nhau, trong đó tập trung mạnh vào các mảng sau:
+
+3.1 Trí tuệ nhân tạo (AI)
+
+ABC phát triển và triển khai các giải pháp AI ứng dụng cho doanh nghiệp, bao gồm:
+
+Hệ thống chatbot thông minh
+Trợ lý ảo cho doanh nghiệp
+Hệ thống gợi ý (recommendation systems)
+AI hỗ trợ chăm sóc khách hàng
+AI hỗ trợ phân loại văn bản và tài liệu
+AI hỗ trợ tìm kiếm thông minh trong nội bộ doanh nghiệp
+AI hỗ trợ phân tích hành vi người dùng
+3.2 Học máy (Machine Learning)
+
+Trong mảng Machine Learning, công ty tập trung vào:
+
+Mô hình dự đoán xu hướng
+Dự báo nhu cầu tiêu thụ
+Chấm điểm rủi ro
+Phân cụm khách hàng
+Phát hiện bất thường (anomaly detection)
+Mô hình dự đoán nghỉ việc của nhân viên
+Dự đoán hiệu suất kinh doanh
+Mô hình hỗ trợ ra quyết định
+3.3 Phát triển phần mềm
+
+ABC cung cấp dịch vụ thiết kế và phát triển phần mềm theo yêu cầu cho doanh nghiệp thuộc nhiều lĩnh vực như:
+
+Tài chính – ngân hàng
+Giáo dục
+Y tế
+Bán lẻ
+Thương mại điện tử
+Logistics
+Sản xuất
+Bất động sản
